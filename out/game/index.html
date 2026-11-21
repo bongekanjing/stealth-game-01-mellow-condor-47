@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nightwatch at the Lamp Room</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #05080c;
+        color: #e9f2f7;
+        font-family: "DejaVu Sans", system-ui, sans-serif;
+      }
+      #field {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        image-rendering: auto;
+        touch-action: none;
+      }
+      /* The canvas draws its own HUD and title card, so the page adds nothing. */
+      #boot {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font: 600 13px "DejaVu Sans Mono", monospace;
+        letter-spacing: 0.18em;
+        color: #5a6f80;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="field" width="1280" height="720" aria-label="Nightwatch at the Lamp Room"></canvas>
+    <div id="boot">LOADING THE FLOOR…</div>
+    <script type="module">
+      // main.js boots itself on import; this script only clears the boot line.
+      import './src/main.js';
+      const bootEl = document.getElementById('boot');
+      const done = () => bootEl && bootEl.remove();
+      try {
+        requestAnimationFrame(() => requestAnimationFrame(done));
+      } catch {
+        done();
+      }
+    </script>
+  </body>
+</html>
