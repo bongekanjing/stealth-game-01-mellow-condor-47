@@ -204,7 +204,7 @@ function freePost(level, wantX, wantY, facing, range, half, minSurv = 0.35, maxS
  */
 function findSliceSetup(level, minY, maxY, xMin = FLOOR.x + 100, xMax = FLOOR.x + FLOOR.w - 100, avoid = null) {
   let best = null;
-  const half = 0.4;
+  const half = 0.52;
   const range = 380;
   for (let gx = xMin; gx < xMax; gx += 40) {
     for (let gy = minY; gy < maxY; gy += 40) {
@@ -227,7 +227,12 @@ function findSliceSetup(level, minY, maxY, xMin = FLOOR.x + 100, xMax = FLOOR.x 
           const ang = Math.atan2(cy - gy, cx - gx);
           if (Math.abs(angleDelta(facing, ang)) > 0.06) continue; // crate dead ahead
           const sub = Math.atan2(Math.max(c.w, c.h) / 2, d); // crate's angular half-width
-          if (sub > half * 0.72) continue; // must leave lit floor beside it
+          // The shadow must be a *slice*, not the whole beam. With a crate that fills
+          // more than half the wedge the light is extinguished wall to wall and there
+          // is nothing to contrast the shadow against — the frame then reads as "the
+          // cone ignores the crate" or as a void, not as cover working. Keeping the
+          // blocker under ~55% of the half-angle leaves lit floor on both flanks.
+          if (sub > half * 0.55) continue;
           const clearance = half - sub;
           if (clearance < 0.1) continue;
           // The shadow must have floor to land on. A crate parked against the south
@@ -250,7 +255,7 @@ function findSliceSetup(level, minY, maxY, xMin = FLOOR.x + 100, xMax = FLOOR.x 
           if (!isFree(level, lx, ly, 12)) continue;
           const s = clearance + d / 2000;
           if (!best || s > best.score) {
-            best = { x: gx, y: gy, facing, crate: c, clearance, score: s };
+            best = { x: gx, y: gy, facing, crate: c, clearance, score: s, range, half };
           }
         }
       }
@@ -417,7 +422,7 @@ function shotPatrol(ctx) {
   const east = FLOOR.x + FLOOR.w - 100;
   const sliceA = findSliceSetup(level, FLOOR.y + 150, FLOOR.y + FLOOR.h * 0.62, west, mid);
   if (sliceA) {
-    pose(level.guards[0], sliceA.x, sliceA.y, sliceA.facing, 'patrol', { range: 320, half: 0.36 });
+    pose(level.guards[0], sliceA.x, sliceA.y, sliceA.facing, 'patrol', { range: sliceA.range, half: sliceA.half });
   } else {
     const a = freePost(level, 213, 387, 0, 300, 0.38, 0.5, 0.85);
     pose(level.guards[0], a.x, a.y, 0, 'patrol', { range: 300, half: 0.38 });
@@ -428,7 +433,7 @@ function shotPatrol(ctx) {
     minD: 300,
   });
   if (sliceB) {
-    pose(level.guards[1], sliceB.x, sliceB.y, sliceB.facing, 'patrol', { range: 320, half: 0.36 });
+    pose(level.guards[1], sliceB.x, sliceB.y, sliceB.facing, 'patrol', { range: sliceB.range, half: sliceB.half });
   } else {
     const b = freePost(level, 873, 222, 2.75, 300, 0.34, 0.5, 0.9);
     pose(level.guards[1], b.x, b.y, 2.75, 'patrol', { range: 300, half: 0.34 });
